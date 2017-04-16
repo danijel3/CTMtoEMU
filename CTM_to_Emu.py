@@ -7,7 +7,7 @@ import shutil
 from Config import get_config
 from CTM import CTM
 from collections import OrderedDict
-from R_process import computeFormants
+from R_process import compute
 from Syllables import Syllables
 import Transcriber
 from tqdm import tqdm
@@ -31,6 +31,8 @@ parser.add_argument('-r', '--rate', help='Samplerate of WAV file', default=16000
 parser.add_argument('--rm-besi', help='Remove _B,_E,_S,_I from phonemes', action='store_true')
 parser.add_argument('--split', help='Split long file into segments at least this meany seconds long.')
 parser.add_argument('--transcriber', help='Path to the transcriber program.', default='/home/guest/apps/transcriber')
+parser.add_argument('--feat', nargs='*',
+                    help='Compute extra features using R package "wrassp", e.g.: forest, ksvF0, mhsF0, rmsana, zcrana')
 
 args = parser.parse_args()
 
@@ -49,29 +51,62 @@ if os.path.exists(out_path):
 
 os.mkdir(out_path)
 
-config = get_config(args.name)
+config = get_config(args.name, args.feat)
 with open('{}/{}_DBconfig.json'.format(out_path, args.name), 'w') as f:
     json.dump(config, f, indent=4)
 
+wav_scp = {}
+utt2ses = {}
+
 if args.wav:
 
-    wav_name = os.path.basename(args.wav)
+    wav_path = os.path.abspath(args.wav)
+    wav_name = os.path.basename(wav_path)
+    utt_name = wav_name[:-4]
+    wav_scp[utt_name] = wav_path
+
+else:
+    print 'Loading wav.scp...'
+
+    with open(args.wav_scp) as f:
+        for line in f:
+            p = line.find(' ')
+            name = line[:p].strip()
+            path = line[p + 1:].strip()
+            wav_scp[name] = path
+
+    if args.utt2ses:
+        print 'Loading utt2ses...'
+        with open(args.utt2ses) as f:
+            for line in f:
+                p = line.find(' ')
+                utt = line[:p].strip()
+                ses = line[p + 1:].strip()
+                utt2ses[utt] = ses
+
+print 'Loading words ctm...'
+words = CTM()
+words.load(args.words_ctm)
+print 'Loading phones ctm...'
+phonemes = CTM()
+phonemes.load(args.phones_ctm)
+
+for words_name, words_file in tqdm(words.files.iteritems(), total=len(wav_scp)):
+
+    ses_name = 'default'
+    if words_name in utt2ses:
+        ses_name = utt2ses[words_name]
+    if not os.path.exists('{}/{}_ses'.format(out_path, ses_name)):
+        os.mkdir('{}/{}_ses'.format(out_path, ses_name))
+
+    wav_path = wav_scp[words_name]
+    wav_name = os.path.basename(wav_path)
     utt_name = wav_name[:-4]
 
-    file_path = out_path + '/main_ses/{}_bndl'.format(utt_name)
-    os.mkdir(out_path + "/main_ses")
+    file_path = out_path + '/{}_ses/{}_bndl'.format(ses_name, utt_name)
     os.mkdir(file_path)
 
-    words = CTM()
-    words.load(args.words_ctm)
-    phonemes = CTM()
-    phonemes.load(args.phones_ctm)
-
-    assert len(words.files) == 1, 'Expected one file in words CTM'
-    assert len(phonemes.files) == 1, 'Expected one file in words CTM'
-
-    words_file = words.files.itervalues().next()
-    phonemes_file = phonemes.files.itervalues().next()
+    phonemes_file = phonemes.files[words_name]
 
     utterance = words_file.getUttFile()
 
@@ -88,6 +123,10 @@ if args.wav:
 
     levels.append(words_file.getAnnotation('Word', 'Word', args.rate))
 
+    syllables = Syllables(words_file, phonemes_file)
+    levels.append(syllables.getWordAnnotation('Syllable', 'Syllable', 'Stress'))
+    levels.append(syllables.getPhonemeAnnotation('Phonetic Syllable', 'Syllable', 'Stress'))
+
     if args.rm_besi:
         levels.append(phonemes_file.getAnnotation('Phoneme', 'Phoneme', args.rate, rmbesi=True))
     else:
@@ -95,95 +134,15 @@ if args.wav:
 
     uttlinks = utterance.getLinks(words_file)
     wordlinks = words_file.getLinks(phonemes_file)
+    syllinks = syllables.getLinks()
 
-    annot['links'] = uttlinks + wordlinks
+    annot['links'] = uttlinks + syllinks
 
     with open('{}/{}_annot.json'.format(file_path, utt_name), 'w') as f:
         json.dump(annot, f, indent=4)
 
     dest_wav = '{}/{}'.format(file_path, wav_name)
-    shutil.copy(args.wav, dest_wav)
-    computeFormants(dest_wav)
+    shutil.copy(wav_path, dest_wav)
 
-else:
-
-    print 'Loading wav.scp...'
-
-    wav_scp = {}
-    with open(args.wav_scp) as f:
-        for line in f:
-            p = line.find(' ')
-            name = line[:p].strip()
-            path = line[p + 1:].strip()
-            wav_scp[name] = path
-
-    utt2ses = {}
-    if args.utt2ses:
-        print 'Loading utt2ses...'
-        with open(args.utt2ses) as f:
-            for line in f:
-                p = line.find(' ')
-                utt = line[:p].strip()
-                ses = line[p + 1:].strip()
-                utt2ses[utt] = ses
-
-    print 'Loading words ctm...'
-    words = CTM()
-    words.load(args.words_ctm)
-    print 'Loading phones ctm...'
-    phonemes = CTM()
-    phonemes.load(args.phones_ctm)
-
-    for words_name, words_file in tqdm(words.files.iteritems(), total=len(wav_scp)):
-
-        ses_name = 'default'
-        if words_name in utt2ses:
-            ses_name = utt2ses[words_name]
-        if not os.path.exists('{}/{}_ses'.format(out_path, ses_name)):
-            os.mkdir('{}/{}_ses'.format(out_path, ses_name))
-
-        wav_path = wav_scp[words_name]
-        wav_name = os.path.basename(wav_path)
-        utt_name = wav_name[:-4]
-
-        file_path = out_path + '/{}_ses/{}_bndl'.format(ses_name, utt_name)
-        os.mkdir(file_path)
-
-        phonemes_file = phonemes.files[words_name]
-
-        utterance = words_file.getUttFile()
-
-        annot = OrderedDict()
-
-        annot['name'] = utt_name
-        annot['annotates'] = wav_name
-        annot['sampleRate'] = args.rate
-
-        levels = []
-        annot['levels'] = levels
-
-        levels.append(utterance.getAnnotation('Utterance', 'Utterance', get_segments=False))
-
-        levels.append(words_file.getAnnotation('Word', 'Word', args.rate))
-
-        syllables = Syllables(words_file, phonemes_file)
-        levels.append(syllables.getWordAnnotation('Syllable', 'Syllable', 'Stress'))
-        levels.append(syllables.getPhonemeAnnotation('Phonetic Syllable', 'Syllable', 'Stress'))
-
-        if args.rm_besi:
-            levels.append(phonemes_file.getAnnotation('Phoneme', 'Phoneme', args.rate, rmbesi=True))
-        else:
-            levels.append(phonemes_file.getAnnotation('Phoneme', 'Phoneme', args.rate))
-
-        uttlinks = utterance.getLinks(words_file)
-        wordlinks = words_file.getLinks(phonemes_file)
-        syllinks = syllables.getLinks()
-
-        annot['links'] = uttlinks + syllinks
-
-        with open('{}/{}_annot.json'.format(file_path, utt_name), 'w') as f:
-            json.dump(annot, f, indent=4)
-
-        dest_wav = '{}/{}'.format(file_path, wav_name)
-        shutil.copy(wav_path, dest_wav)
-        computeFormants(dest_wav)
+    if args.feat:
+        compute(dest_wav, args.feat)

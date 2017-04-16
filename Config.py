@@ -1,8 +1,28 @@
 from uuid import uuid1
 from collections import OrderedDict
 
+features = {'forest': {'name': 'Formants',
+                       'columnName': 'fm',
+                       'fileExtension': 'fms'},
+            'ksvF0': {'name': 'Pitch',
+                      'columnName': 'F0',
+                      'fileExtension': 'f0'},
+            'mhsF0': {'name': 'Pitch',
+                      'columnName': 'F0',
+                      'fileExtension': 'f0'},
+            'rmsana': {'name': 'RMS',
+                       'columnName': 'rms',
+                       'fileExtension': 'rms'},
+            'zcrana': {'name': 'ZeroCross',
+                       'columnName': 'zcr',
+                       'fileExtension': 'zcr'}
+            }
 
-def get_default_emu_config():
+
+def get_default_emu_config(feats):
+    if not feats:
+        feats = []
+
     config = OrderedDict()
 
     perspectives = []
@@ -16,18 +36,30 @@ def get_default_emu_config():
     sig_cnv = OrderedDict()
     def_perspective['signalCanvases'] = sig_cnv
 
-    assign_spec = OrderedDict()
-    assign_spec['signalCanvasName'] = 'SPEC'
-    assign_spec['ssffTrackName'] = 'FORMANTS'
-
-    formant_colors = OrderedDict()
-    formant_colors['ssffTrackName'] = 'FORMANTS'
-    formant_colors['colors'] = ['rgb(255,100,100)', 'rgb(100,255,100)', 'rgb(100,100,255)', 'rgb(100,255,255)']
-
     sig_cnv['order'] = ['OSCI', 'SPEC']
-    sig_cnv['assign'] = [assign_spec]
+    sig_cnv['assign'] = []
     sig_cnv['contourLims'] = []
-    sig_cnv['contourColors'] = [formant_colors]
+
+    if 'forest' in feats:
+        assign_spec = OrderedDict()
+        assign_spec['signalCanvasName'] = 'SPEC'
+        assign_spec['ssffTrackName'] = 'Formants'
+
+        formant_colors = OrderedDict()
+        formant_colors['ssffTrackName'] = 'Formants'
+        formant_colors['colors'] = ['rgb(255,100,100)', 'rgb(100,255,100)', 'rgb(100,100,255)', 'rgb(100,255,255)']
+
+        sig_cnv['assign'].append(assign_spec)
+        sig_cnv['contourColors'] = [formant_colors]
+
+    if 'ksvF0' in feats or 'mhsF0' in feats:
+        sig_cnv['order'].append('Pitch')
+
+    if 'rmsana' in feats:
+        sig_cnv['order'].append('RMS')
+
+    if 'zcr' in feats:
+        sig_cnv['order'].append('ZeroCross')
 
     lev_cnv = OrderedDict()
     def_perspective['levelCanvases'] = lev_cnv
@@ -83,7 +115,7 @@ def getLink(from_level, to_level, type='ONE_TO_MANY'):
     return link
 
 
-def get_config(name):
+def get_config(name, feats):
     config = OrderedDict()
 
     config['name'] = name
@@ -93,12 +125,12 @@ def get_config(name):
     tracks = []
     config['ssffTrackDefinitions'] = tracks
 
-    formants = OrderedDict()
-    tracks.append(formants)
-
-    formants['name'] = 'FORMANTS'
-    formants['columnName'] = 'fm'
-    formants['fileExtension'] = 'fms'
+    if feats:
+        for feat in feats:
+            if feat in features:
+                tracks.append(features[feat])
+            else:
+                print 'Warning: feature not recognized -- {}'.format(feat)
 
     levels = []
     config['levelDefinitions'] = levels
@@ -118,6 +150,6 @@ def get_config(name):
     links.append(getLink('Syllable', 'Phoneme'))
     links.append(getLink('Phonetic Syllable', 'Phoneme'))
 
-    config['EMUwebAppConfig'] = get_default_emu_config()
+    config['EMUwebAppConfig'] = get_default_emu_config(feats)
 
     return config
