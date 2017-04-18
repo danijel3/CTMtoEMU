@@ -19,22 +19,13 @@ features = {'forest': {'name': 'Formants',
             }
 
 
-def get_default_emu_config(feats):
-    if not feats:
-        feats = []
+def get_perspective(name, feats):
+    perspective = OrderedDict()
 
-    config = OrderedDict()
-
-    perspectives = []
-    config['perspectives'] = perspectives
-
-    def_perspective = OrderedDict()
-    perspectives.append(def_perspective)
-
-    def_perspective['name'] = 'default'
+    perspective['name'] = name
 
     sig_cnv = OrderedDict()
-    def_perspective['signalCanvases'] = sig_cnv
+    perspective['signalCanvases'] = sig_cnv
 
     sig_cnv['order'] = ['OSCI', 'SPEC']
     sig_cnv['assign'] = []
@@ -62,24 +53,39 @@ def get_default_emu_config(feats):
         sig_cnv['order'].append('ZeroCross')
 
     lev_cnv = OrderedDict()
-    def_perspective['levelCanvases'] = lev_cnv
+    perspective['levelCanvases'] = lev_cnv
 
     lev_cnv['order'] = ['Word', 'Phoneme']
 
     twodim_cnv = OrderedDict()
-    def_perspective['twoDimCanvases'] = twodim_cnv
+    perspective['twoDimCanvases'] = twodim_cnv
 
     twodim_cnv['order'] = []
+
+    return perspective
+
+
+def get_default_emu_config(feats):
+    if not feats:
+        feats = []
+
+    config = OrderedDict()
+
+    perspectives = []
+    config['perspectives'] = perspectives
+
+    perspectives.append(get_perspective('default', []))
+    perspectives.append(get_perspective('full', feats))
 
     restrictions = OrderedDict()
     config['restrictions'] = restrictions
 
-    restrictions['showPerspectivesSidebar'] = False
+    restrictions['showPerspectivesSidebar'] = True
 
     buttons = OrderedDict()
     config['activeButtons'] = buttons
 
-    buttons['saveBundle'] = False
+    buttons['saveBundle'] = True
     buttons['showHierarchy'] = True
 
     return config
