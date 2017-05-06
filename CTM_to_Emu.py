@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import argparse
 import json
+import os
 import os.path
 import sys
 import shutil
@@ -33,6 +34,7 @@ parser.add_argument('--split', help='Split long file into segments at least this
 parser.add_argument('--transcriber', help='Path to the transcriber program.', default='/home/guest/apps/transcriber')
 parser.add_argument('--feat', nargs='*',
                     help='Compute extra features using R package "wrassp", e.g.: forest, ksvF0, mhsF0, rmsana, zcrana')
+parser.add_argument('-s', '--symlink', help='Use symlinks instead of copying audio to database', action='store_true')
 
 args = parser.parse_args()
 
@@ -142,7 +144,11 @@ for words_name, words_file in tqdm(words.files.iteritems(), total=len(wav_scp)):
         json.dump(annot, f, indent=4)
 
     dest_wav = '{}/{}'.format(file_path, wav_name)
-    shutil.copy(wav_path, dest_wav)
+
+    if args.symlink:
+        os.symlink(wav_path, dest_wav)
+    else:
+        shutil.copy(wav_path, dest_wav)
 
     if args.feat:
         compute(dest_wav, args.feat)
