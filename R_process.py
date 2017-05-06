@@ -12,10 +12,10 @@ def sendCommands(commands):
 
 
 def compute(filepath, cmds):
-    filename = os.path.splitext(filepath)[0]
+    dirpath = os.path.dirname(filepath)
     if len(cmds) == 0:
         return
     cmd_str = 'library("wrassp")\n'
     for cmd in cmds:
-        cmd_str += '{}("{}",toFile="{}")\n'.format(cmd, filepath, filename)
+        cmd_str += '{}("{}",outputDirectory="{}")\n'.format(cmd, filepath, dirpath)
     sendCommands(cmd_str)
