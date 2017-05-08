@@ -3,12 +3,11 @@ from subprocess import Popen, PIPE, STDOUT
 
 
 def sendCommands(commands):
-    with open(os.devnull, 'w') as n:
-        p = Popen(['R', '--vanilla'], stdin=PIPE, stdout=n, stderr=STDOUT)
-        p.stdin.write(commands)
-        p.stdin.close()
-        # for l in p.stdout.readlines():
-        #     print l
+    p = Popen(['R', '--vanilla'], stdin=PIPE, stdout=PIPE, stderr=STDOUT)
+    p.stdin.write(commands)
+    p.stdin.close()
+    for l in p.stdout.readlines():
+        pass
 
 
 def compute(filepath, cmds):
