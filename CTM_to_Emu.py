@@ -42,7 +42,7 @@ parser.add_argument('--split', help='Split long file into segments at least this
 args = parser.parse_args()
 
 if args.split:
-    print 'Split is not yet implemented!'
+    print('Split is not yet implemented!')
     sys.exit(-1)
 
 out_path = os.path.abspath(args.out_dir)
@@ -51,11 +51,11 @@ Transcriber.transcriber_path = args.transcriber
 
 if os.path.exists(out_path):
     if args.overwrite:
-        print 'Overwriting dir: {}'.format(out_path)
+        print('Overwriting dir: {}'.format(out_path))
         shutil.rmtree(args.out_dir)
     else:
-        print 'Output dir {} already exists!'.format(out_path)
-        print 'Exiting! (see help for overwrite option)'
+        print('Output dir {} already exists!'.format(out_path))
+        print('Exiting! (see help for overwrite option)')
         sys.exit(0)
 
 os.mkdir(out_path)
@@ -75,7 +75,7 @@ if args.wav:
     wav_scp[utt_name] = wav_path
 
 else:
-    print 'Loading wav.scp...'
+    print('Loading wav.scp...')
 
     with open(args.wav_scp) as f:
         for line in f:
@@ -85,7 +85,7 @@ else:
             wav_scp[name] = path
 
     if args.utt2ses:
-        print 'Loading utt2ses...'
+        print('Loading utt2ses...')
         with open(args.utt2ses) as f:
             for line in f:
                 p = line.find(' ')
@@ -95,7 +95,7 @@ else:
 
 segs = None
 if args.segs:
-    print 'Loading segments...'
+    print('Loading segments...')
     with open(args.segs) as f:
         segs = {}
         for line in f:
@@ -103,14 +103,14 @@ if args.segs:
             assert len(tok) == 4, 'Segments line is not exactly 4 tokens: {}'.format(line)
             segs[tok[0]] = (tok[1], tok[2], tok[3])
 
-print 'Loading words ctm...'
+print('Loading words ctm...')
 words = CTM()
 words.load(args.words_ctm)
-print 'Loading phones ctm...'
+print('Loading phones ctm...')
 phonemes = CTM()
 phonemes.load(args.phones_ctm)
 
-for words_name, words_file in tqdm(words.files.iteritems(), total=len(words.files.items())):
+for words_name, words_file in tqdm(iter(words.files.items()), total=len(list(words.files.items()))):
 
     ses_name = 'default'
     if words_name in utt2ses:

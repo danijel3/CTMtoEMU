@@ -1,5 +1,5 @@
-from uuid import uuid1
 from collections import OrderedDict
+from uuid import uuid1
 
 features = {'forest': {'name': 'Formants',
                        'columnName': 'fm',
@@ -136,7 +136,7 @@ def get_config(name, feats):
             if feat in features:
                 tracks.append(features[feat])
             else:
-                print 'Warning: feature not recognized -- {}'.format(feat)
+                print('Warning: feature not recognized -- {}'.format(feat))
 
     levels = []
     config['levelDefinitions'] = levels

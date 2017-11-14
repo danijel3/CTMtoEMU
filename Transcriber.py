@@ -1,5 +1,5 @@
 import os
-import cPickle as pickle
+import pickle as pickle
 from subprocess import Popen, PIPE
 
 transcriber_path = '/home/guest/apps/transcriber'

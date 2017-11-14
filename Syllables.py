@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from collections import OrderedDict
+
 from pyphen import Pyphen
+
 import ID
 from Transcriber import Transcriber
 
@@ -37,7 +39,7 @@ transcriber = Transcriber()
 
 class Syllable:
     def __init__(self, syl):
-        self.id = ID.next()
+        self.id = next(ID)
         self.text = syl
         self.phonemes = []
         self.stressed = False
@@ -45,14 +47,14 @@ class Syllable:
     def __str__(self):
         arr = []
         for ph in self.phonemes:
-            arr.append(unicode(ph.text))
-        return u'{} ({})'.format(self.text, arr)
+            arr.append(str(ph.text))
+        return '{} ({})'.format(self.text, arr)
 
 
 hyp = Pyphen(lang='pl_PL')
 
-ph_map = {'I': 'y', 'en': u'ę', 'on': u'ą', 'v': 'w', 'S': 'sz', 'Z': u'ż', 'si': u'ś', 'zi': u'ź', 'x': 'h', 'ts': 'c',
-          'tS': 'cz', 'dZ': u'dż', 'ni': u'ń', 'tsi': u'ć', 'dzi': u'dź', 'N': 'n', 'w': u'ł'}
+ph_map = {'I': 'y', 'en': 'ę', 'on': 'ą', 'v': 'w', 'S': 'sz', 'Z': 'ż', 'si': 'ś', 'zi': 'ź', 'x': 'h', 'ts': 'c',
+          'tS': 'cz', 'dZ': 'dż', 'ni': 'ń', 'tsi': 'ć', 'dzi': 'dź', 'N': 'n', 'w': 'ł'}
 
 
 def phonemes_to_word(phonemes):
@@ -63,7 +65,7 @@ def phonemes_to_word(phonemes):
     return ''.join(phonemes)
 
 
-stress_exceptions = set(['maksimum', 'minimum', 'rzeczpospolita', 'uniwersytet', 'mianownik', 'polemika'])
+stress_exceptions = {'maksimum', 'minimum', 'rzeczpospolita', 'uniwersytet', 'mianownik', 'polemika'}
 
 
 class Word:
@@ -81,13 +83,13 @@ class Word:
         s_pos = - 2
         word = self.word.text
 
-        if word.endswith(u'iśmy') or word.endswith(u'iście'):
+        if word.endswith('iśmy') or word.endswith('iście'):
             s_pos = - 3
 
-        if word.endswith(u'ibyśmy') or word.endswith(u'ibyście'):
+        if word.endswith('ibyśmy') or word.endswith('ibyście'):
             s_pos = - 4
 
-        if word.startswith(u'arcy') or word.startswith(u'wice') or word.startswith(u'eks') or word.startswith(u'super'):
+        if word.startswith('arcy') or word.startswith('wice') or word.startswith('eks') or word.startswith('super'):
             if len(self.word_syllables) == 2:
                 s_pos = -1
 
@@ -107,12 +109,12 @@ class Word:
     def __str__(self):
         arr = []
         for syl in self.word_syllables:
-            arr.append(unicode(syl))
+            arr.append(str(syl))
         arr_ph = []
         for syl in self.ph_syllables:
-            arr_ph.append(unicode(syl))
+            arr_ph.append(str(syl))
 
-        return u'{}\n{}\n>>{}\n>>{}'.format(self.word.text, arr, self.phonemes, arr_ph)
+        return '{}\n{}\n>>{}\n>>{}'.format(self.word.text, arr, self.phonemes, arr_ph)
 
 
 class Syllables:

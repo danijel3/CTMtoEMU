@@ -1,7 +1,8 @@
-from collections import OrderedDict
-import re
-import ID
 import codecs
+import re
+from collections import OrderedDict
+
+import ID
 
 EPSILON = 5e-3
 
@@ -10,7 +11,7 @@ class Segment:
     def __init__(self, line=''):
 
         if len(line) == 0:
-            self.id = ID.next()
+            self.id = next(ID)
             self.file = ''
             self.channel = ''
             self.start = 0
@@ -24,7 +25,7 @@ class Segment:
         if len(tok) < 5:
             raise RuntimeError('Expected line to have at least 5 tokens (found {})'.format(len(tok)))
 
-        self.id = ID.next()
+        self.id = next(ID)
         self.file = tok[0]
         self.channel = tok[1]
         self.start = float(tok[2])
@@ -135,5 +136,5 @@ class CTM:
                     self.files[seg.file] = File(seg.file)
                 self.files[seg.file].segments.append(seg)
 
-        for name, file in self.files.iteritems():
+        for name, file in self.files.items():
             file.segments = sorted(file.segments, key=lambda seg: seg.start)
