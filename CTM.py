@@ -11,7 +11,7 @@ class Segment:
     def __init__(self, line=''):
 
         if len(line) == 0:
-            self.id = next(ID)
+            self.id = ID.next()
             self.file = ''
             self.channel = ''
             self.start = 0
@@ -25,7 +25,7 @@ class Segment:
         if len(tok) < 5:
             raise RuntimeError('Expected line to have at least 5 tokens (found {})'.format(len(tok)))
 
-        self.id = next(ID)
+        self.id = ID.next()
         self.file = tok[0]
         self.channel = tok[1]
         self.start = float(tok[2])

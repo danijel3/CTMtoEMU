@@ -25,20 +25,20 @@ class Transcriber:
         with open(os.devnull, 'w') as n:
             p = Popen([transcriber_path + '/transcriber', '-r', transcriber_path + '/transcription.rules'],
                       stdin=PIPE, stdout=PIPE, stderr=n)
-            p.stdin.write(word.encode('utf-8') + '\n')
+            p.stdin.write((word + u'\n').encode('utf-8'))
             p.stdin.close()
             for t in p.stdout:
-                trans.append(t[:-1].split(' ')[1:])
+                trans.append(t.decode('utf-8')[:-1].split(' ')[1:])
 
             self.cache[word] = trans
         return trans
 
     def load(self, path):
-        with open(path) as f:
+        with open(path, 'rb') as f:
             self.cache = pickle.load(f)
 
     def save(self, path=transcriber_cache_name):
         if self.changed:
             self.changed = False
-            with open(path, 'w') as f:
+            with open(path, 'wb') as f:
                 pickle.dump(self.cache, f, protocol=pickle.HIGHEST_PROTOCOL)

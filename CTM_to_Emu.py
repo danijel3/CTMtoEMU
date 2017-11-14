@@ -8,6 +8,7 @@ from collections import OrderedDict
 
 from tqdm import tqdm
 
+import ID
 import Transcriber
 from CTM import CTM
 from Config import get_config
@@ -31,10 +32,10 @@ parser.add_argument('--utt2ses', help='List of utterance to session mappings (si
 parser.add_argument('-o', '--overwrite', help='Overwrite output directory.', action='store_true')
 parser.add_argument('-n', '--name', help='Name of the database.', default='database')
 parser.add_argument('-r', '--rate', help='Samplerate of WAV file', default=16000.0, type=float)
-parser.add_argument('--rm-besi', help='Remove _B,_E,_S,_I from phonemes', action='store_true')
+parser.add_argument('--rm-besi', help='Remove _B,_E,_S,_I from phonemes', type=bool)
 parser.add_argument('--transcriber', help='Path to the transcriber program.', default='/home/guest/apps/transcriber')
-parser.add_argument('--feat', nargs='*',
-                    help='Compute extra features using R package "wrassp", e.g.: forest, ksvF0, mhsF0, rmsana, zcrana')
+parser.add_argument('--feat',
+                    help='Compute extra features (comma separated) using R package "wrassp", e.g.: forest, ksvF0, mhsF0, rmsana, zcrana')
 parser.add_argument('-s', '--symlink', help='Use symlinks instead of copying audio to database', action='store_true')
 parser.add_argument('--segs', help='Use segments file')
 parser.add_argument('--split', help='Split long file into segments at least this meany seconds long.')
@@ -60,7 +61,7 @@ if os.path.exists(out_path):
 
 os.mkdir(out_path)
 
-config = get_config(args.name, args.feat)
+config = get_config(args.name, args.feat.split(','))
 with open('{}/{}_DBconfig.json'.format(out_path, args.name), 'w') as f:
     json.dump(config, f, indent=4)
 
@@ -111,6 +112,8 @@ phonemes = CTM()
 phonemes.load(args.phones_ctm)
 
 for words_name, words_file in tqdm(iter(words.files.items()), total=len(list(words.files.items()))):
+
+    ID.reset()
 
     ses_name = 'default'
     if words_name in utt2ses:
@@ -175,4 +178,4 @@ for words_name, words_file in tqdm(iter(words.files.items()), total=len(list(wor
         json.dump(annot, f, indent=4)
 
     if args.feat:
-        compute(dest_wav, args.feat)
+        compute(dest_wav, args.feat.split(','))

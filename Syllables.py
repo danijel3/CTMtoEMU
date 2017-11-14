@@ -39,7 +39,7 @@ transcriber = Transcriber()
 
 class Syllable:
     def __init__(self, syl):
-        self.id = next(ID)
+        self.id = ID.next()
         self.text = syl
         self.phonemes = []
         self.stressed = False
