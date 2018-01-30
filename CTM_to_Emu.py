@@ -5,6 +5,7 @@ import os.path
 import shutil
 import sys
 from collections import OrderedDict
+from pathlib import Path
 
 from tqdm import tqdm
 
@@ -33,7 +34,10 @@ parser.add_argument('-o', '--overwrite', help='Overwrite output directory.', act
 parser.add_argument('-n', '--name', help='Name of the database.', default='database')
 parser.add_argument('-r', '--rate', help='Samplerate of WAV file', default=16000.0, type=float)
 parser.add_argument('--rm-besi', help='Remove _B,_E,_S,_I from phonemes', type=bool)
-parser.add_argument('--transcriber', help='Path to the transcriber program.', default='/home/guest/apps/transcriber')
+parser.add_argument('--phonetisaurus', help='Path to the phonetisaurus-g2pfst program.',
+                    default='/home/guest/apps/kaldi/tools/phonetisaurus-g2p/phonetisaurus-g2pfst')
+parser.add_argument('--g2p-model', help='Path to the FST G2P model.',
+                    default='model.fst')
 parser.add_argument('--feat',
                     help='Compute extra features (comma separated) using R package "wrassp", e.g.: forest, ksvF0, mhsF0, rmsana, zcrana')
 parser.add_argument('-s', '--symlink', help='Use symlinks instead of copying audio to database', action='store_true')
@@ -48,7 +52,8 @@ if args.split:
 
 out_path = os.path.abspath(args.out_dir)
 
-Transcriber.transcriber_path = args.transcriber
+Transcriber.phonetisaurus_bin = Path(args.phonetisaurus)
+Transcriber.model_fst = Path(args.g2p_model)
 
 if os.path.exists(out_path):
     if args.overwrite:
