@@ -1,12 +1,13 @@
 import os
 import pickle as pickle
-from subprocess import Popen, PIPE
+from pathlib import Path
+from subprocess import check_output
 
-transcriber_path = '/home/guest/apps/transcriber'
+phonetisaurus_bin = Path('/home/guest/apps/kaldi/tools/phonetisaurus-g2p/phonetisaurus-g2pfst')
+model_fst = Path('model.fst')
 transcriber_cache_name = 'transcriber_cache.pkl'
 
 
-# WARNING: this class doesn't use replacement rules!
 class Transcriber:
     def __init__(self):
         self.cache = {}
@@ -22,15 +23,16 @@ class Transcriber:
         self.changed = True
 
         trans = []
-        with open(os.devnull, 'w') as n:
-            p = Popen([transcriber_path + '/transcriber', '-r', transcriber_path + '/transcription.rules'],
-                      stdin=PIPE, stdout=PIPE, stderr=n)
-            p.stdin.write((word + u'\n').encode('utf-8'))
-            p.stdin.close()
-            for t in p.stdout:
-                trans.append(t.decode('utf-8')[:-1].split(' ')[1:])
+        with open('/dev/null') as n:
+            out = check_output(
+                [f'{phonetisaurus_bin.absolute()}', f'--model={model_fst.absolute()}', '--nbest=100', '--beam=500',
+                 '--thresh=10', '--pmass=0.8', f'--word={word}'], stderr=n)
+        out = out.decode('utf-8').strip()
+        for t in out.split('\n'):
+            t = t.split('\t')[2]
+            trans.append(t.split(' '))
 
-            self.cache[word] = trans
+        self.cache[word] = trans
         return trans
 
     def load(self, path):
@@ -42,3 +44,10 @@ class Transcriber:
             self.changed = False
             with open(path, 'wb') as f:
                 pickle.dump(self.cache, f, protocol=pickle.HIGHEST_PROTOCOL)
+
+
+# Unit test
+if __name__ == '__main__':
+    trans = Transcriber()
+    print(trans.transcribe('auto'))
+    print(trans.transcribe('brzmienie'))
