@@ -9,7 +9,6 @@ from pathlib import Path
 
 from tqdm import tqdm
 
-import ID
 import Transcriber
 from CTM import CTM
 from Config import get_config
@@ -22,9 +21,9 @@ parser = argparse.ArgumentParser(description='Program to convert CTM files (usua
 
 parser.add_argument('out_dir', help='Output directory')
 parser.add_argument('words_ctm', help='CTM containing words')
-parser.add_argument('phones_ctm', help='CTM contatinng phonemes')
+parser.add_argument('phones_ctm', help='CTM contacting phonemes')
 parser.add_argument('wav',
-                    help='Wave file corresponging to CTMs (only if single file, use --wav-scp for multiple files)',
+                    help='Wave file corresponding to CTMs (only if single file, use --wav-scp for multiple files)',
                     default=None, nargs='?')
 parser.add_argument('--wav-scp',
                     help='List of WAV files if CTM contains references to multiple files. Uses Kaldi wav.scp format.',
@@ -32,14 +31,14 @@ parser.add_argument('--wav-scp',
 parser.add_argument('--utt2ses', help='List of utterance to session mappings (similar to utt2spk).', default=None)
 parser.add_argument('-o', '--overwrite', help='Overwrite output directory.', action='store_true')
 parser.add_argument('-n', '--name', help='Name of the database.', default='database')
-parser.add_argument('-r', '--rate', help='Samplerate of WAV file', default=16000.0, type=float)
-parser.add_argument('--rm-besi', help='Remove _B,_E,_S,_I from phonemes', type=bool)
+parser.add_argument('-r', '--rate', help='Sample rate of WAV file', default=16000.0, type=float)
 parser.add_argument('--phonetisaurus', help='Path to the phonetisaurus-g2pfst program.',
                     default='/home/guest/apps/kaldi/tools/phonetisaurus-g2p/phonetisaurus-g2pfst')
 parser.add_argument('--g2p-model', help='Path to the FST G2P model.',
                     default='model.fst')
 parser.add_argument('--feat',
-                    help='Compute extra features (comma separated) using R package "wrassp", e.g.: forest, ksvF0, mhsF0, rmsana, zcrana')
+                    help='Compute extra features (comma separated) using R package "wrassp", e.g.: forest, ksvF0, '
+                         'mhsF0, rmsana, zcrana')
 parser.add_argument('-s', '--symlink', help='Use symlinks instead of copying audio to database', action='store_true')
 parser.add_argument('--segs', help='Use segments file')
 parser.add_argument('--split', help='Split long file into segments at least this meany seconds long.')
@@ -118,8 +117,6 @@ phonemes.load(args.phones_ctm)
 
 for words_name, words_file in tqdm(iter(words.files.items()), total=len(list(words.files.items()))):
 
-    ID.reset()
-
     ses_name = 'default'
     if words_name in utt2ses:
         ses_name = utt2ses[words_name]
@@ -168,10 +165,7 @@ for words_name, words_file in tqdm(iter(words.files.items()), total=len(list(wor
     levels.append(syllables.getWordAnnotation('Syllable', 'Syllable', 'Stress'))
     levels.append(syllables.getPhonemeAnnotation('Phonetic Syllable', 'Syllable', 'Stress'))
 
-    if args.rm_besi:
-        levels.append(phonemes_file.getAnnotation('Phoneme', 'Phoneme', args.rate, rmbesi=True))
-    else:
-        levels.append(phonemes_file.getAnnotation('Phoneme', 'Phoneme', args.rate))
+    levels.append(phonemes_file.getAnnotation('Phoneme', 'Phoneme', args.rate, phonemes=True))
 
     uttlinks = utterance.getLinks(words_file)
     wordlinks = words_file.getLinks(phonemes_file)

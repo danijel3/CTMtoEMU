@@ -145,7 +145,7 @@ def get_config(name, feats):
     levels.append(getLevel('Word', 'Word'))
     levels.append(getLevel('Syllable', ['Syllable', 'Stress'], itemtype='ITEM'))
     levels.append(getLevel('Phonetic Syllable', ['Syllable', 'Stress'], itemtype='ITEM'))
-    levels.append(getLevel('Phoneme', 'Phoneme'))
+    levels.append(getLevel('Phoneme', ['Phoneme', 'SAMPA', 'IPA']))
 
     links = []
     config['linkDefinitions'] = links

@@ -4,7 +4,13 @@ from collections import OrderedDict
 
 import ID
 
+pl_sampa_map = {'ni': "n'", 'si': "s'", 'tsi': "ts'", 'zi': "z'", 'dzi': "dz'", 'en': 'e~', 'on': 'o~'}
+pl_ipa_map = {'e': u'ɛ', 'en': u'ɛ̃', 'I': u'ɨ', 'o': u'ɔ', 'on': u'ɔ̃', 'si': u'ɕ', 'dz': u'dz', 'dzi': u'dʑ',
+              'dZ': u'dʐ', 'g': u'ɡ', 'ni': u'ɲ', 'S': u'ʂ', 'tsi': u'tɕ', 'ts': u'ts', 'tS': u'tʂ', 'zi': u'ʑ',
+              'Z': u'ʐ'}
+
 EPSILON = 5e-3
+besi = re.compile('^.*_[BESI]$')
 
 
 class Segment:
@@ -41,9 +47,8 @@ class File:
     def __init__(self, name):
         self.name = name
         self.segments = []
-        self.besi = re.compile('^.*_[BESI]$')
 
-    def getAnnotation(self, name, labelname, samplerate=16000, get_segments=True, rmbesi=False):
+    def getAnnotation(self, name, labelname, samplerate=16000, get_segments=True, phonemes=False):
 
         level = OrderedDict()
 
@@ -73,13 +78,30 @@ class File:
             labels.append(label)
 
             label['name'] = labelname
-            if rmbesi:
-                text = seg.text
-                if self.besi.match(text):
+            text = seg.text
+            if phonemes:
+                if besi.match(text):
                     text = text[:-2]
-                label['value'] = text
-            else:
-                label['value'] = seg.text
+
+                label_ph = OrderedDict()
+                labels.append(label_ph)
+                label_ph['name'] = 'SAMPA'
+                ph = text
+                if ph in pl_sampa_map:
+                    ph = pl_sampa_map[ph]
+                label_ph['value'] = ph
+
+                label_ph = OrderedDict()
+                labels.append(label_ph)
+                label_ph['name'] = 'IPA'
+                ph = text
+                if ph in pl_ipa_map:
+                    ph = pl_ipa_map[ph]
+                label_ph['value'] = ph
+
+            label['value'] = text
+
+
 
         return level
 
