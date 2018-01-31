@@ -57,7 +57,6 @@ optional arguments:
   -o, --overwrite       Overwrite output directory.
   -n NAME, --name NAME  Name of the database.
   -r RATE, --rate RATE  Samplerate of WAV file
-  --rm-besi RM_BESI     Remove _B,_E,_S,_I from phonemes
   --phonetisaurus PHONETISAURUS
                         Path to the phonetisaurus-g2pfst program.
   --g2p-model G2P_MODEL
