@@ -148,7 +148,7 @@ class CTM:
         self.files = {}
 
     def load(self, file):
-        with codecs.open(file, encoding='utf-8') as f:
+        with codecs.open(str(file), encoding='utf-8') as f:
             for num, line in enumerate(f):
                 try:
                     seg = Segment(line.strip())

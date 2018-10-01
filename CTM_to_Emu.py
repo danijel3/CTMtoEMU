@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import argparse
 import json
-import os.path
 import shutil
 import sys
 from collections import OrderedDict
@@ -49,24 +48,24 @@ if args.split:
     print('Split is not yet implemented!')
     sys.exit(-1)
 
-out_path = os.path.abspath(args.out_dir)
+out_path = Path(args.out_dir)
 
 Transcriber.phonetisaurus_bin = Path(args.phonetisaurus)
 Transcriber.model_fst = Path(args.g2p_model)
 
-if os.path.exists(out_path):
+if out_path.exists():
     if args.overwrite:
         print(f'Overwriting dir: {out_path}')
-        shutil.rmtree(args.out_dir)
+        shutil.rmtree(str(out_path))
     else:
         print(f'Output dir {out_path} already exists!')
         print('Exiting! (see help for overwrite option)')
         sys.exit(0)
 
-os.mkdir(out_path)
+out_path.mkdir()
 
 config = get_config(args.name, args.feat.split(','))
-with open(f'{out_path}/{args.name}_DBconfig.json', 'w') as f:
+with open(str(out_path / f'{args.name}_DBconfig.json'), 'w') as f:
     json.dump(config, f, indent=4)
 
 wav_scp = {}
@@ -74,8 +73,8 @@ utt2ses = {}
 
 if args.wav:
 
-    wav_path = os.path.abspath(args.wav)
-    wav_name = os.path.basename(wav_path)
+    wav_path = Path(args.wav)
+    wav_name = wav_path.name
     utt_name = wav_name[:-4]
     wav_scp[utt_name] = wav_path
 
@@ -120,11 +119,12 @@ for words_name, words_file in tqdm(iter(words.files.items()), total=len(list(wor
     ses_name = 'default'
     if words_name in utt2ses:
         ses_name = utt2ses[words_name]
-    if not os.path.exists(f"{out_path}/{ses_name}_ses"):
-        os.mkdir(f'{out_path}/{ses_name}_ses')
+    ses_path = out_path / f'{ses_name}_ses'
+    if not ses_path.exists():
+        ses_path.mkdir()
 
-    file_path = out_path + f'/{ses_name}_ses/{words_name}_bndl'
-    os.mkdir(file_path)
+    file_path = out_path / f'{ses_name}_ses' / f'{words_name}_bndl'
+    file_path.mkdir()
 
     if segs:
         seg = segs[words_name]
@@ -132,17 +132,17 @@ for words_name, words_file in tqdm(iter(words.files.items()), total=len(list(wor
         seg_end = float(seg[2])
         wav_path = wav_scp[seg[0]]
 
-        dest_wav = f'{file_path}/{words_name}.wav'
-        extract_audio(wav_path, seg_start, seg_end, dest_wav)
+        dest_wav = file_path / f'{words_name}.wav'
+        extract_audio(wav_path, seg_start, seg_end, str(dest_wav))
 
     else:
         wav_path = wav_scp[words_name]
 
-        dest_wav = f'{file_path}/{words_name}.wav'
+        dest_wav = file_path / f'{words_name}.wav'
         if args.symlink:
-            os.symlink(wav_path, dest_wav)
+            dest_wav.symlink_to(wav_path)
         else:
-            shutil.copy(wav_path, dest_wav)
+            shutil.copy(wav_path, str(dest_wav))
 
     phonemes_file = phonemes.files[words_name]
 
@@ -173,7 +173,7 @@ for words_name, words_file in tqdm(iter(words.files.items()), total=len(list(wor
 
     annot['links'] = uttlinks + syllinks
 
-    with open(f'{file_path}/{words_name}_annot.json', 'w') as f:
+    with open(str(file_path / f'{words_name}_annot.json'), 'w') as f:
         json.dump(annot, f, indent=4)
 
     if args.feat:

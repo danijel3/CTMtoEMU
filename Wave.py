@@ -2,8 +2,8 @@ import wave
 
 
 def extract_audio(input, start, end, output, bufsize=1024):
-    wav_in = wave.open(input, 'rb')
-    wav_out = wave.open(output, 'wb')
+    wav_in = wave.open(str(input), 'rb')
+    wav_out = wave.open(str(output), 'wb')
     wav_out.setparams(wav_in.getparams())
 
     start_pos = int(start * wav_in.getframerate() * wav_in.getnchannels())

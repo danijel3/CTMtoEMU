@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 from subprocess import Popen, PIPE, STDOUT
 
 
@@ -10,11 +10,11 @@ def sendCommands(commands):
         pass
 
 
-def compute(filepath, cmds):
-    dirpath = os.path.dirname(filepath)
+def compute(filepath: Path, cmds):
+    dirpath = filepath.parent
     if len(cmds) == 0:
         return
     cmd_str = 'library("wrassp")\n'
     for cmd in cmds:
-        cmd_str += f'{cmd}("{filepath}",outputDirectory="{dirpath}")\n'
+        cmd_str += f'{cmd}("{filepath.absolute()}",outputDirectory="{dirpath.absolute()}")\n'
     sendCommands(cmd_str)

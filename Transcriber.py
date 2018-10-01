@@ -1,11 +1,10 @@
-import os
 import pickle as pickle
 from pathlib import Path
 from subprocess import check_output
 
 phonetisaurus_bin = Path('/home/guest/apps/kaldi/tools/phonetisaurus-g2p/phonetisaurus-g2pfst')
 model_fst = Path('model.fst')
-transcriber_cache_name = 'transcriber_cache.pkl'
+transcriber_cache_name = Path('transcriber_cache.pkl')
 
 
 class Transcriber:
@@ -13,7 +12,7 @@ class Transcriber:
         self.cache = {}
         self.changed = False
 
-        if os.path.exists(transcriber_cache_name):
+        if transcriber_cache_name.exists():
             self.load(transcriber_cache_name)
 
     def transcribe(self, word):
@@ -36,7 +35,7 @@ class Transcriber:
         return trans
 
     def load(self, path):
-        with open(path, 'rb') as f:
+        with open(str(path), 'rb') as f:
             self.cache = pickle.load(f)
 
     def save(self, path=transcriber_cache_name):
