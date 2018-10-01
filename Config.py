@@ -136,7 +136,7 @@ def get_config(name, feats):
             if feat in features:
                 tracks.append(features[feat])
             else:
-                print('Warning: feature not recognized -- {}'.format(feat))
+                print(f'Warning: feature not recognized -- {feat}')
 
     levels = []
     config['levelDefinitions'] = levels

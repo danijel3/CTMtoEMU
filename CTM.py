@@ -29,7 +29,7 @@ class Segment:
         tok = re.split('\\s+', line)
 
         if len(tok) < 5:
-            raise RuntimeError('Expected line to have at least 5 tokens (found {})'.format(len(tok)))
+            raise RuntimeError(f'Expected line to have at least 5 tokens (found {len(tok)})')
 
         self.id = ID.next()
         self.file = tok[0]
@@ -153,7 +153,7 @@ class CTM:
                 try:
                     seg = Segment(line.strip())
                 except Exception as err:
-                    raise RuntimeError(err, 'Error in {}:{} >{}<'.format(file, num, line.strip()))
+                    raise RuntimeError(err, f'Error in {file}:{num} >{line.strip()}<')
                 if not seg.file in self.files:
                     self.files[seg.file] = File(seg.file)
                 self.files[seg.file].segments.append(seg)

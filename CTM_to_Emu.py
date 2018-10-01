@@ -56,17 +56,17 @@ Transcriber.model_fst = Path(args.g2p_model)
 
 if os.path.exists(out_path):
     if args.overwrite:
-        print('Overwriting dir: {}'.format(out_path))
+        print(f'Overwriting dir: {out_path}')
         shutil.rmtree(args.out_dir)
     else:
-        print('Output dir {} already exists!'.format(out_path))
+        print(f'Output dir {out_path} already exists!')
         print('Exiting! (see help for overwrite option)')
         sys.exit(0)
 
 os.mkdir(out_path)
 
 config = get_config(args.name, args.feat.split(','))
-with open('{}/{}_DBconfig.json'.format(out_path, args.name), 'w') as f:
+with open(f'{out_path}/{args.name}_DBconfig.json', 'w') as f:
     json.dump(config, f, indent=4)
 
 wav_scp = {}
@@ -105,7 +105,7 @@ if args.segs:
         segs = {}
         for line in f:
             tok = line[:-1].strip().split(' ')
-            assert len(tok) == 4, 'Segments line is not exactly 4 tokens: {}'.format(line)
+            assert len(tok) == 4, f'Segments line is not exactly 4 tokens: {line}'
             segs[tok[0]] = (tok[1], tok[2], tok[3])
 
 print('Loading words ctm...')
@@ -120,10 +120,10 @@ for words_name, words_file in tqdm(iter(words.files.items()), total=len(list(wor
     ses_name = 'default'
     if words_name in utt2ses:
         ses_name = utt2ses[words_name]
-    if not os.path.exists('{}/{}_ses'.format(out_path, ses_name)):
-        os.mkdir('{}/{}_ses'.format(out_path, ses_name))
+    if not os.path.exists(f"{out_path}/{ses_name}_ses"):
+        os.mkdir(f'{out_path}/{ses_name}_ses')
 
-    file_path = out_path + '/{}_ses/{}_bndl'.format(ses_name, words_name)
+    file_path = out_path + f'/{ses_name}_ses/{words_name}_bndl'
     os.mkdir(file_path)
 
     if segs:
@@ -132,13 +132,13 @@ for words_name, words_file in tqdm(iter(words.files.items()), total=len(list(wor
         seg_end = float(seg[2])
         wav_path = wav_scp[seg[0]]
 
-        dest_wav = '{}/{}.wav'.format(file_path, words_name)
+        dest_wav = f'{file_path}/{words_name}.wav'
         extract_audio(wav_path, seg_start, seg_end, dest_wav)
 
     else:
         wav_path = wav_scp[words_name]
 
-        dest_wav = '{}/{}.wav'.format(file_path, words_name)
+        dest_wav = f'{file_path}/{words_name}.wav'
         if args.symlink:
             os.symlink(wav_path, dest_wav)
         else:
@@ -173,7 +173,7 @@ for words_name, words_file in tqdm(iter(words.files.items()), total=len(list(wor
 
     annot['links'] = uttlinks + syllinks
 
-    with open('{}/{}_annot.json'.format(file_path, words_name), 'w') as f:
+    with open(f'{file_path}/{words_name}_annot.json', 'w') as f:
         json.dump(annot, f, indent=4)
 
     if args.feat:

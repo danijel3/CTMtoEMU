@@ -48,7 +48,7 @@ class Syllable:
         arr = []
         for ph in self.phonemes:
             arr.append(str(ph.text))
-        return '{} ({})'.format(self.text, arr)
+        return f'{self.text} ({arr})'
 
 
 hyp = Pyphen(lang='pl_PL')
@@ -114,7 +114,7 @@ class Word:
         for syl in self.ph_syllables:
             arr_ph.append(str(syl))
 
-        return '{}\n{}\n>>{}\n>>{}'.format(self.word.text, arr, self.phonemes, arr_ph)
+        return f'{self.word.text}\n{arr}\n>>{self.phonemes}\n>>{arr_ph}'
 
 
 class Syllables:

@@ -16,5 +16,5 @@ def compute(filepath, cmds):
         return
     cmd_str = 'library("wrassp")\n'
     for cmd in cmds:
-        cmd_str += '{}("{}",outputDirectory="{}")\n'.format(cmd, filepath, dirpath)
+        cmd_str += f'{cmd}("{filepath}",outputDirectory="{dirpath}")\n'
     sendCommands(cmd_str)
