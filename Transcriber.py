@@ -28,7 +28,10 @@ class Transcriber:
                  '--thresh=10', '--pmass=0.8', f'--word={word}'], stderr=n)
         out = out.decode('utf-8').strip()
         for t in out.split('\n'):
-            t = t.split('\t')[2]
+            tok = t.split('\t')
+            if len(tok) < 3:
+                continue
+            t = tok[2]
             trans.append(t.split(' '))
 
         self.cache[word] = trans
