@@ -29,10 +29,9 @@ parser.add_argument('--wav-scp',
                     default=None)
 parser.add_argument('--utt2ses', help='List of utterance to session mappings (similar to utt2spk).', default=None)
 parser.add_argument('-o', '--overwrite', help='Overwrite output directory.', action='store_true')
-parser.add_argument('-n', '--name', help='Name of the database.', default='database')
 parser.add_argument('-r', '--rate', help='Sample rate of WAV file', default=16000.0, type=float)
 parser.add_argument('--phonetisaurus', help='Path to the phonetisaurus-g2pfst program.',
-                    default='/home/guest/apps/kaldi/tools/phonetisaurus-g2p/phonetisaurus-g2pfst')
+                    default='/home/guest/Applications/kaldi/tools/phonetisaurus-g2p/phonetisaurus-g2pfst')
 parser.add_argument('--g2p-model', help='Path to the FST G2P model.',
                     default='model.fst')
 parser.add_argument('--feat',
@@ -64,8 +63,8 @@ if out_path.exists():
 
 out_path.mkdir()
 
-config = get_config(args.name, args.feat.split(','))
-with open(str(out_path / f'{args.name}_DBconfig.json'), 'w') as f:
+config = get_config(str(out_path.name), args.feat.split(','))
+with open(str(out_path / f'{out_path.name}_DBconfig.json'), 'w') as f:
     json.dump(config, f, indent=4)
 
 wav_scp = {}
